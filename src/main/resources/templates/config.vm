@@ -1,0 +1,42 @@
+#* @vtlvariable name="loginRecord" type="com.example.ampstutorial.TwitterLoginRecord" *#
+<html>
+<head>
+    <meta name='profile.tab.key' content='com.example.ampstutorial.fecrutwitter:config-link'/>
+</head>
+<body>
+<div>
+    <form action="./slack-servlet" method="post">
+        <table class="dialog-prefs" cellspacing="0">
+            <thead>
+            <tr>
+                <th colspan="2"><h3>Slack Integration Settings</h3></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="tdLabel">
+                    <label for="webhooks" class="label">Webhooks</label>
+                </td>
+                <td>
+                    <input id="webhooks" type="text" name="webhooks" value="${slackSettings.webhooks}"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="tdLabel">
+                    <label for="users" class="label">Users</label>
+                </td>
+                <td>
+                    <textarea id="users" name="users"
+                              placeholder="{users:[{slack:replaceSlackName,jira:replateJiraName}]}">${slackSettings.users}</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="action"><input type="submit" value="Save"/></td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+</body>
+</html>
