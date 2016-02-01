@@ -30,7 +30,12 @@ public class ReviewListener {
   @EventListener
   public void reviewCreated(ReviewStateChangedEvent reviewCreatedEvent) {
     if (reviewCreatedEvent.getNewState() == State.Review) {
-      this.sendReviewStarted(this.reviewService.getReviewDetails(reviewCreatedEvent.getReviewId()).getReviewers().reviewer, reviewCreatedEvent);
+      DetailedReviewData details = this.reviewService.getReviewDetails(reviewCreatedEvent.getReviewId());
+      Set<ReviewerData> reviewer = details.getReviewers().reviewer;
+      Set<UserData> all = new HashSet<UserData>();
+      all.add(details.getModerator());
+      all.addAll(reviewer);
+      this.sendReviewStarted(all, reviewCreatedEvent);
     }
 
   }
@@ -40,14 +45,21 @@ public class ReviewListener {
     PermId id = allReviewersCompletedEvent.getReviewId();
     DetailedReviewData reviewData = this.reviewService.getReviewDetails(id);
     String reviewAuthor = this.slackSettingsStore.findSlackUserName(reviewData.getAuthor().getUserName());
+    String moderator = this.slackSettingsStore.findSlackUserName(reviewData.getModerator().getUserName());
+
+    SlackMessage slackMessage = new SlackMessage();
+    slackMessage.setText("Review completed " + SlackMessage.url("http://crucible.center.cg/cru/" + id.getId(), id.getId()));
+    this.slackSender.sendMessage(slackMessage);
+
     if (reviewAuthor != null) {
-      SlackMessage slackMessage = new SlackMessage();
-      slackMessage.setText("Review completed " + SlackMessage.url("http://crucible.center.cg/cru/" + id.getId(), id.getId()));
-      this.slackSender.sendMessage(slackMessage);
       slackMessage.setChannel("@" + reviewAuthor);
       this.slackSender.sendMessage(slackMessage);
     }
 
+    if (moderator != null) {
+      slackMessage.setChannel("@" + moderator);
+      this.slackSender.sendMessage(slackMessage);
+    }
   }
 
   @EventListener
@@ -78,7 +90,7 @@ public class ReviewListener {
 
   }
 
-  private void sendReviewStarted(Set<ReviewerData> reviewersData, ReviewEvent reviewEvent) {
+  private void sendReviewStarted(Set<UserData> reviewersData, ReviewEvent reviewEvent) {
     ReviewData reviewData = this.reviewService.getReview(reviewEvent.getReviewId());
     String reviewAuthor = this.slackSettingsStore.findSlackUserName(reviewData.getAuthor().getUserName());
     if (reviewAuthor != null) {
